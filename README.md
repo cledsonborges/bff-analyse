@@ -1,4 +1,4 @@
-# Agente de IA para Análise de Aplicativos - Back-end
+## Agente de IA para Análise de Aplicativos - Back-end
 
 Este é o back-end do sistema de análise automática de aplicativos da Google Play Store e Apple App Store.
 
@@ -53,5 +53,5 @@ Para funcionalidades completas, configure as seguintes variáveis de ambiente:
 
 ## Desenvolvido por
 
-Agente de IA Manus - Sistema completo de análise automática de aplicativos.
+Cledson Alves - Sistema completo de análise automática de aplicativos.
 
