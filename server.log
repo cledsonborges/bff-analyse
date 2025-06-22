@@ -1,0 +1,88 @@
+nohup: ignoring input
+INFO:__main__:Banco de dados inicializado
+INFO:__main__:Blueprint de scraping registrado
+INFO:services.sentiment_analysis_real:Serviço Gemini configurado com sucesso
+INFO:__main__:Blueprint de análise de sentimentos registrado
+ * Serving Flask app 'api_real'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5002
+ * Running on http://169.254.0.21:5002
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+INFO:__main__:Banco de dados inicializado
+INFO:__main__:Blueprint de scraping registrado
+INFO:services.sentiment_analysis_real:Serviço Gemini configurado com sucesso
+INFO:__main__:Blueprint de análise de sentimentos registrado
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 120-366-809
+INFO:routes.scraping_real:Buscando no Google Play: íon Itaú
+INFO:services.google_play_scraping_real:Buscando apps no Google Play: íon Itaú
+INFO:services.google_play_scraping_real:Encontrados 10 apps
+INFO:routes.scraping_real:Adicionado app: íon Itaú: investir com taxa 0
+INFO:routes.scraping_real:Adicionado app: Banco Itaú: Conta, Cartão e +
+INFO:routes.scraping_real:Adicionado app: Itaú: Cartões de crédito
+INFO:routes.scraping_real:Adicionado app: Itaú Empresas: Conta PJ
+INFO:routes.scraping_real:Adicionado app: Personnalité: banco e cartão
+INFO:routes.scraping_real:Adicionado app: iti: banco digital, cartão e +
+INFO:routes.scraping_real:Adicionado app: Cartão de crédito Samsung Itaú
+INFO:routes.scraping_real:Adicionado app: Rico: só vantagem pra investir
+INFO:routes.scraping_real:Adicionado app: Inter: Conta, Cartão e Pix
+INFO:routes.scraping_real:Adicionado app: XP Investimentos
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:44:08] "POST /api/scraping/search HTTP/1.1" 200 -
+INFO:routes.scraping_real:Buscando na App Store: íon Itaú
+INFO:services.apple_store_scraping_real:Buscando apps na App Store: íon Itaú
+INFO:services.apple_store_scraping_real:Encontrados 11 apps
+INFO:routes.scraping_real:Adicionado app: íon Itaú: investir com taxa 0
+INFO:routes.scraping_real:Adicionado app: XP Investimentos
+INFO:routes.scraping_real:Adicionado app: Bolsa
+INFO:routes.scraping_real:Adicionado app: Nomad: Conta digital em dólar
+INFO:routes.scraping_real:Adicionado app: Investing.com: Ações, Finanças
+INFO:routes.scraping_real:Adicionado app: TradeMap: Acompanhe suas ações
+INFO:routes.scraping_real:Adicionado app: Avenue - Investir em dólar
+INFO:routes.scraping_real:Adicionado app: Toro Investimentos: taxa 0
+INFO:routes.scraping_real:Adicionado app: Genial Investimentos
+INFO:routes.scraping_real:Adicionado app: Finclass - Aprenda a Investir
+INFO:routes.scraping_real:Adicionado app: Investidor10
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:44:38] "POST /api/scraping/search HTTP/1.1" 200 -
+INFO:routes.scraping_real:Buscando no Google Play: íon Itaú
+INFO:services.google_play_scraping_real:Buscando apps no Google Play: íon Itaú
+INFO:services.google_play_scraping_real:Encontrados 10 apps
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:44:56] "POST /api/scraping/search HTTP/1.1" 200 -
+INFO:routes.scraping_real:Buscando na App Store: íon Itaú
+INFO:services.apple_store_scraping_real:Buscando apps na App Store: íon Itaú
+INFO:services.apple_store_scraping_real:Encontrados 11 apps
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:45:02] "POST /api/scraping/search HTTP/1.1" 200 -
+INFO:routes.scraping_real:Buscando no Google Play: XP Investimentos
+INFO:services.google_play_scraping_real:Buscando apps no Google Play: XP Investimentos
+INFO:services.google_play_scraping_real:Encontrados 10 apps
+INFO:routes.scraping_real:Adicionado app: XP Trader
+INFO:routes.scraping_real:Adicionado app: XP Empresas: Conta PJ
+INFO:routes.scraping_real:Adicionado app: TradeMap: Investimentos e B3
+INFO:routes.scraping_real:Adicionado app: Toro Investimentos: taxa zero
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Investimentos
+INFO:routes.scraping_real:Adicionado app: Investimentos BB Taxa Zero
+INFO:routes.scraping_real:Adicionado app: Ágora Investimentos
+INFO:routes.scraping_real:Adicionado app: Binance: Compre BTC e Cripto
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:45:19] "POST /api/scraping/search HTTP/1.1" 200 -
+INFO:routes.scraping_real:Buscando no Google Play: BTG Pactual Investimentos
+INFO:services.google_play_scraping_real:Buscando apps no Google Play: BTG Pactual Investimentos
+INFO:services.google_play_scraping_real:Encontrados 9 apps
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Banking
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Empresas: Conta PJ
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Trader
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Global
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Parceiros
+INFO:routes.scraping_real:Adicionado app: EQI Investimentos
+INFO:routes.scraping_real:Adicionado app: Genial Investimentos
+INFO:routes.scraping_real:Adicionado app: BTG Pactual Family Office
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:45:28] "POST /api/scraping/search HTTP/1.1" 200 -
+ERROR:__main__:Health check falhou: Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2025 09:45:47] "[35m[1mGET /health HTTP/1.1[0m" 500 -
+INFO:werkzeug: * Detected change in '/home/ubuntu/bff-analyse/api_real.py', reloading
+INFO:werkzeug: * Restarting with stat
+  File "/home/ubuntu/bff-analyse/api_real.py", line 255
+    db.session.execute(text(\'SELECT 1\'))       app_count = App.query.count()
+                             ^
+SyntaxError: unexpected character after line continuation character
