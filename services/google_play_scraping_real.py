@@ -1,5 +1,5 @@
 import logging
-from google_play_scraper import app, reviews, search
+from google_play_scraper import app, reviews, Sort, search
 from datetime import datetime
 import time
 import random
