@@ -273,10 +273,9 @@ def get_sentiment_stats():
 def get_sentiment_config():
     """Retorna configuração do serviço de análise de sentimentos"""
     return jsonify({
-        "service_available": not sentiment_service.use_mock,
-        "using_mock": sentiment_service.use_mock,
-        "api_configured": sentiment_service.api_key is not None,
-        "message": "Serviço Gemini configurado" if not sentiment_service.use_mock else "Usando análise mock - configure GEMINI_API_KEY"
+        "service_available": not sentiment_service.use_fallback,
+        "using_fallback": sentiment_service.use_fallback,
+        "message": "Serviço Gemini configurado" if not sentiment_service.use_fallback else "Usando análise básica - configure GEMINI_API_KEY para análise avançada"
     })
 
 

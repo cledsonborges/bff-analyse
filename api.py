@@ -6,10 +6,11 @@ import logging
 from models import db, App, Review, AnalysisReport
 import os
 from datetime import datetime, timezone
+from flasgger import swag_from
+from swagger_config import init_swagger
 
 # Configurar API Key do Gemini
 os.environ['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY', 'SUA_CHAVE_AQUI')
-
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +25,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Inicializar banco de dados
 db.init_app(app)
+
+# Inicializar Swagger
+swagger = init_swagger(app)
 
 # Criar tabelas
 with app.app_context():
@@ -51,7 +55,6 @@ try:
     logger.info("Blueprint do agente Code Buddy registrado")
 except ImportError as e:
     logger.warning(f"Erro ao importar blueprint do Code Buddy: {e}")    
-    
 
 # Função para popular dados iniciais
 def populate_initial_data():
@@ -65,7 +68,33 @@ with app.app_context():
 # Rotas da API
 @app.route("/api/apps", methods=["GET"])
 def get_apps():
-    """Retorna lista de aplicativos disponíveis"""
+    """
+    Retorna lista de aplicativos disponíveis
+    ---
+    tags:
+      - Apps
+    parameters:
+      - name: store
+        in: query
+        type: string
+        enum: [google_play, app_store]
+        description: Filtrar por loja
+      - name: category
+        in: query
+        type: string
+        description: Filtrar por categoria
+    responses:
+      200:
+        description: Lista de aplicativos
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/App'
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         store_filter = request.args.get("store")  # Filtrar por loja
         category_filter = request.args.get("category")  # Filtrar por categoria
@@ -99,7 +128,31 @@ def get_apps():
 
 @app.route("/api/apps/<app_id>", methods=["GET"])
 def get_app(app_id):
-    """Retorna detalhes de um aplicativo específico"""
+    """
+    Retorna detalhes de um aplicativo específico
+    ---
+    tags:
+      - Apps
+    parameters:
+      - name: app_id
+        in: path
+        type: string
+        required: true
+        description: ID único do aplicativo
+    responses:
+      200:
+        description: Detalhes do aplicativo
+        schema:
+          $ref: '#/definitions/App'
+      404:
+        description: App não encontrado
+        schema:
+          $ref: '#/definitions/Error'
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         app = App.query.filter_by(app_id=app_id).first()
         if not app:
@@ -123,7 +176,39 @@ def get_app(app_id):
 
 @app.route("/api/apps/<app_id>/reviews", methods=["GET"])
 def get_app_reviews(app_id):
-    """Retorna reviews de um aplicativo"""
+    """
+    Retorna reviews de um aplicativo
+    ---
+    tags:
+      - Reviews
+    parameters:
+      - name: app_id
+        in: path
+        type: string
+        required: true
+        description: ID único do aplicativo
+      - name: limit
+        in: query
+        type: integer
+        default: 20
+        description: Número máximo de reviews a retornar
+      - name: sentiment
+        in: query
+        type: string
+        enum: [positive, negative, neutral]
+        description: Filtrar por sentimento
+    responses:
+      200:
+        description: Lista de reviews
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Review'
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         limit = request.args.get("limit", 20, type=int)
         sentiment_filter = request.args.get("sentiment")  # Filtrar por sentimento
@@ -154,7 +239,27 @@ def get_app_reviews(app_id):
 
 @app.route("/api/apps/<app_id>/analysis", methods=["GET"])
 def get_app_analysis(app_id):
-    """Retorna análise de sentimentos do aplicativo"""
+    """
+    Retorna análise de sentimentos do aplicativo
+    ---
+    tags:
+      - Analysis
+    parameters:
+      - name: app_id
+        in: path
+        type: string
+        required: true
+        description: ID único do aplicativo
+    responses:
+      200:
+        description: Análise de sentimentos
+        schema:
+          $ref: '#/definitions/Analysis'
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         # Buscar relatório mais recente
         report = AnalysisReport.query.filter_by(app_id=app_id).order_by(AnalysisReport.created_at.desc()).first()
@@ -202,7 +307,23 @@ def get_app_analysis(app_id):
 
 @app.route("/api/categories", methods=["GET"])
 def get_categories():
-    """Retorna categorias disponíveis"""
+    """
+    Retorna categorias disponíveis
+    ---
+    tags:
+      - Apps
+    responses:
+      200:
+        description: Lista de categorias
+        schema:
+          type: array
+          items:
+            type: string
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         categories = db.session.query(App.category).distinct().all()
         category_list = [cat[0] for cat in categories if cat[0]]
@@ -213,12 +334,39 @@ def get_categories():
 
 @app.route("/api/stores", methods=["GET"])
 def get_stores():
-    """Retorna lojas disponíveis"""
+    """
+    Retorna lojas disponíveis
+    ---
+    tags:
+      - Apps
+    responses:
+      200:
+        description: Lista de lojas
+        schema:
+          type: array
+          items:
+            type: string
+            enum: [google_play, app_store]
+    """
     return jsonify(["google_play", "app_store"])
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    """Health check da API"""
+    """
+    Health check da API
+    ---
+    tags:
+      - Health
+    responses:
+      200:
+        description: API funcionando corretamente
+        schema:
+          $ref: '#/definitions/HealthCheck'
+      500:
+        description: Erro na API
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         # Testar conexão com banco
         db.session.execute(text("SELECT 1"))
@@ -247,3 +395,4 @@ if __name__ == "__main__":
     with app.app_context():
         populate_initial_data()
     app.run(host="0.0.0.0", port=5002, debug=True)
+

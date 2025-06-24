@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFF Analyse API - Documentação Swagger</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            margin:0;
+            background: #fafafa;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        .swagger-ui .topbar {
+            background-color: #2c3e50;
+        }
+        .swagger-ui .topbar .download-url-wrapper .select-label {
+            color: #fff;
+        }
+        .swagger-ui .topbar .download-url-wrapper input[type=text] {
+            border: 2px solid #34495e;
+        }
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .custom-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        .custom-header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .api-info {
+            max-width: 1200px;
+            margin: 0 auto 2rem auto;
+            padding: 0 1rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        .info-card h3 {
+            margin: 0 0 1rem 0;
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+        .info-card p {
+            margin: 0;
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        .endpoint-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .endpoint-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .endpoint-list li:last-child {
+            border-bottom: none;
+        }
+        .method {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            min-width: 60px;
+            text-align: center;
+        }
+        .method.get { background: #61affe; color: white; }
+        .method.post { background: #49cc90; color: white; }
+        .method.put { background: #fca130; color: white; }
+        .method.delete { background: #f93e3e; color: white; }
+    </style>
+</head>
+<body>
+    <div class="custom-header">
+        <h1>BFF Analyse API</h1>
+        <p>Documentação completa da API para análise de aplicativos móveis e reviews</p>
+    </div>
+
+    <div class="api-info">
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📱 Sobre a API</h3>
+                <p>A BFF Analyse API permite coletar e analisar reviews de aplicativos móveis das principais lojas (Google Play Store e Apple App Store), fornecendo insights valiosos sobre sentimentos dos usuários.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>🚀 Funcionalidades</h3>
+                <ul class="endpoint-list">
+                    <li>Busca e coleta de aplicativos</li>
+                    <li>Extração de reviews em tempo real</li>
+                    <li>Análise de sentimentos com IA</li>
+                    <li>Relatórios e estatísticas</li>
+                    <li>Suporte a múltiplas lojas</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🔧 Principais Endpoints</h3>
+                <ul class="endpoint-list">
+                    <li><span class="method get">GET</span>/api/apps - Lista aplicativos</li>
+                    <li><span class="method get">GET</span>/api/apps/{id}/reviews - Reviews do app</li>
+                    <li><span class="method get">GET</span>/api/apps/{id}/analysis - Análise de sentimentos</li>
+                    <li><span class="method post">POST</span>/api/scraping/search - Buscar novos apps</li>
+                    <li><span class="method post">POST</span>/api/sentiment/analyze-app/{id} - Analisar sentimentos</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>📊 Tecnologias</h3>
+                <p>Construída com Flask, SQLAlchemy, Google Generative AI (Gemini), e bibliotecas especializadas para scraping de lojas de aplicativos.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Definir a especificação OpenAPI
+            const spec = {
+                "swagger": "2.0",
+                "info": {
+                    "title": "BFF Analyse API",
+                    "description": "API para análise de aplicativos móveis e reviews",
+                    "version": "3.0.0",
+                    "contact": {
+                        "name": "Cledson Alves",
+                        "email": "cledsonborges@gmail.com"
+                    }
+                },
+                "host": "bff-analyse-api.vercel.app",
+                "basePath": "/",
+                "schemes": ["https", "http"],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": [
+                    {
+                        "name": "Apps",
+                        "description": "Operações relacionadas aos aplicativos"
+                    },
+                    {
+                        "name": "Reviews",
+                        "description": "Operações relacionadas às reviews"
+                    },
+                    {
+                        "name": "Analysis",
+                        "description": "Operações de análise de sentimentos"
+                    },
+                    {
+                        "name": "Scraping",
+                        "description": "Operações de coleta de dados"
+                    },
+                    {
+                        "name": "Health",
+                        "description": "Verificação de saúde da API"
+                    }
+                ],
+                "paths": {
+                    "/api/apps": {
+                        "get": {
+                            "tags": ["Apps"],
+                            "summary": "Lista aplicativos disponíveis",
+                            "description": "Retorna lista de aplicativos com filtros opcionais",
+                            "parameters": [
+                                {
+                                    "name": "store",
+                                    "in": "query",
+                                    "type": "string",
+                                    "enum": ["google_play", "app_store"],
+                                    "description": "Filtrar por loja"
+                                },
+                                {
+                                    "name": "category",
+                                    "in": "query",
+                                    "type": "string",
+                                    "description": "Filtrar por categoria"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Lista de aplicativos",
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/definitions/App"
+                                        }
+                                    }
+                                },
+                                "500": {
+                                    "description": "Erro interno do servidor",
+                                    "schema": {
+                                        "$ref": "#/definitions/Error"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/apps/{app_id}": {
+                        "get": {
+                            "tags": ["Apps"],
+                            "summary": "Detalhes de um aplicativo",
+                            "description": "Retorna detalhes completos de um aplicativo específico",
+                            "parameters": [
+                                {
+                                    "name": "app_id",
+                                    "in": "path",
+                                    "type": "string",
+                                    "required": true,
+                                    "description": "ID único do aplicativo"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Detalhes do aplicativo",
+                                    "schema": {
+                                        "$ref": "#/definitions/App"
+                                    }
+                                },
+                                "404": {
+                                    "description": "App não encontrado"
+                                },
+                                "500": {
+                                    "description": "Erro interno do servidor"
+                                }
+                            }
+                        }
+                    },
+                    "/api/apps/{app_id}/reviews": {
+                        "get": {
+                            "tags": ["Reviews"],
+                            "summary": "Reviews de um aplicativo",
+                            "description": "Retorna lista de reviews com filtros opcionais",
+                            "parameters": [
+                                {
+                                    "name": "app_id",
+                                    "in": "path",
+                                    "type": "string",
+                                    "required": true,
+                                    "description": "ID único do aplicativo"
+                                },
+                                {
+                                    "name": "limit",
+                                    "in": "query",
+                                    "type": "integer",
+                                    "default": 20,
+                                    "description": "Número máximo de reviews"
+                                },
+                                {
+                                    "name": "sentiment",
+                                    "in": "query",
+                                    "type": "string",
+                                    "enum": ["positive", "negative", "neutral"],
+                                    "description": "Filtrar por sentimento"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Lista de reviews",
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/definitions/Review"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/apps/{app_id}/analysis": {
+                        "get": {
+                            "tags": ["Analysis"],
+                            "summary": "Análise de sentimentos",
+                            "description": "Retorna análise completa de sentimentos do aplicativo",
+                            "parameters": [
+                                {
+                                    "name": "app_id",
+                                    "in": "path",
+                                    "type": "string",
+                                    "required": true,
+                                    "description": "ID único do aplicativo"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Análise de sentimentos",
+                                    "schema": {
+                                        "$ref": "#/definitions/Analysis"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/scraping/search": {
+                        "post": {
+                            "tags": ["Scraping"],
+                            "summary": "Buscar aplicativos",
+                            "description": "Busca e adiciona novos aplicativos ao banco de dados",
+                            "parameters": [
+                                {
+                                    "name": "body",
+                                    "in": "body",
+                                    "required": true,
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "query": {
+                                                "type": "string",
+                                                "description": "Termo de busca"
+                                            },
+                                            "store": {
+                                                "type": "string",
+                                                "enum": ["google_play", "app_store", "both"],
+                                                "default": "both"
+                                            },
+                                            "limit": {
+                                                "type": "integer",
+                                                "default": 10
+                                            }
+                                        },
+                                        "required": ["query"]
+                                    }
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Busca realizada com sucesso"
+                                }
+                            }
+                        }
+                    },
+                    "/api/sentiment/analyze-app/{app_id}": {
+                        "post": {
+                            "tags": ["Analysis"],
+                            "summary": "Analisar sentimentos",
+                            "description": "Executa análise de sentimentos nas reviews do aplicativo",
+                            "parameters": [
+                                {
+                                    "name": "app_id",
+                                    "in": "path",
+                                    "type": "string",
+                                    "required": true,
+                                    "description": "ID único do aplicativo"
+                                },
+                                {
+                                    "name": "body",
+                                    "in": "body",
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "force_reanalysis": {
+                                                "type": "boolean",
+                                                "default": false
+                                            },
+                                            "limit": {
+                                                "type": "integer",
+                                                "default": 100
+                                            }
+                                        }
+                                    }
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Análise concluída"
+                                }
+                            }
+                        }
+                    },
+                    "/health": {
+                        "get": {
+                            "tags": ["Health"],
+                            "summary": "Health check",
+                            "description": "Verifica o status da API e conexões",
+                            "responses": {
+                                "200": {
+                                    "description": "API funcionando",
+                                    "schema": {
+                                        "$ref": "#/definitions/HealthCheck"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "definitions": {
+                    "App": {
+                        "type": "object",
+                        "properties": {
+                            "app_id": {
+                                "type": "string",
+                                "description": "ID único do aplicativo"
+                            },
+                            "name": {
+                                "type": "string",
+                                "description": "Nome do aplicativo"
+                            },
+                            "store": {
+                                "type": "string",
+                                "enum": ["google_play", "app_store"],
+                                "description": "Loja do aplicativo"
+                            },
+                            "current_version": {
+                                "type": "string",
+                                "description": "Versão atual"
+                            },
+                            "rating": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Avaliação média"
+                            },
+                            "total_reviews": {
+                                "type": "integer",
+                                "description": "Total de reviews"
+                            },
+                            "category": {
+                                "type": "string",
+                                "description": "Categoria do app"
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "Descrição do app"
+                            },
+                            "icon_url": {
+                                "type": "string",
+                                "description": "URL do ícone"
+                            },
+                            "last_updated": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Última atualização"
+                            }
+                        }
+                    },
+                    "Review": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "description": "ID da review"
+                            },
+                            "user_name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                            },
+                            "content": {
+                                "type": "string",
+                                "description": "Conteúdo da review"
+                            },
+                            "rating": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 5,
+                                "description": "Avaliação (1-5)"
+                            },
+                            "sentiment": {
+                                "type": "string",
+                                "enum": ["positive", "negative", "neutral"],
+                                "description": "Sentimento"
+                            },
+                            "sentiment_score": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Score do sentimento"
+                            },
+                            "date": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Data da review"
+                            }
+                        }
+                    },
+                    "Analysis": {
+                        "type": "object",
+                        "properties": {
+                            "total_reviews": {
+                                "type": "integer",
+                                "description": "Total de reviews analisadas"
+                            },
+                            "positive_percentage": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Percentual positivo"
+                            },
+                            "negative_percentage": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Percentual negativo"
+                            },
+                            "neutral_percentage": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Percentual neutro"
+                            },
+                            "avg_sentiment_score": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Score médio de sentimento"
+                            },
+                            "last_updated": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Última atualização"
+                            }
+                        }
+                    },
+                    "HealthCheck": {
+                        "type": "object",
+                        "properties": {
+                            "status": {
+                                "type": "string",
+                                "description": "Status da API"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Mensagem de status"
+                            },
+                            "version": {
+                                "type": "string",
+                                "description": "Versão da API"
+                            },
+                            "database": {
+                                "type": "string",
+                                "description": "Status do banco"
+                            },
+                            "stats": {
+                                "type": "object",
+                                "properties": {
+                                    "total_apps": {
+                                        "type": "integer"
+                                    },
+                                    "total_reviews": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "Error": {
+                        "type": "object",
+                        "properties": {
+                            "error": {
+                                "type": "string",
+                                "description": "Mensagem de erro"
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Inicializar Swagger UI
+            const ui = SwaggerUIBundle({
+                spec: spec,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                tryItOutEnabled: true,
+                requestInterceptor: function(request) {
+                    // Adicionar headers padrão se necessário
+                    request.headers['Content-Type'] = 'application/json';
+                    return request;
+                }
+            });
+
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>
+
