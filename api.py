@@ -7,7 +7,9 @@ from models import db, App, Review, AnalysisReport
 
 import os
 
-# Configurar API Key do Gemini'
+# Configurar API Key do Gemini
+os.environ['GEMINI_API_KEY'] = 'AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI'
+
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +45,14 @@ try:
 except ImportError as e:
     logger.warning(f"Não foi possível importar blueprint de sentimentos: {e}")
 
+try:
+    from routes.code_buddy_agent import code_buddy_bp
+    app.register_blueprint(code_buddy_bp, url_prefix="/api")
+    logger.info("Blueprint do agente Code Buddy registrado")
+except ImportError as e:
+    logger.warning(f"Erro ao importar blueprint do Code Buddy: {e}")    
+    
+
 # Função para popular dados iniciais
 def populate_initial_data():
     if App.query.count() == 0:
@@ -50,39 +60,9 @@ def populate_initial_data():
         apps_data = [
             {
                 "app_id": "com.whatsapp",
-                "name": "WhatsApp Messenger",
+                "name": "WhatsApp Messenger-mocks",
                 "store": "google_play",
                 "category": "Comunicação"
-            },
-            {
-                "app_id": "310633997",
-                "name": "WhatsApp Messenger",
-                "store": "app_store",
-                "category": "Social Networking"
-            },
-            {
-                "app_id": "com.instagram.android",
-                "name": "Instagram",
-                "store": "google_play",
-                "category": "Social"
-            },
-            {
-                "app_id": "389801252",
-                "name": "Instagram",
-                "store": "app_store",
-                "category": "Photo & Video"
-            },
-            {
-                "app_id": "com.spotify.music",
-                "name": "Spotify",
-                "store": "google_play",
-                "category": "Música e áudio"
-            },
-            {
-                "app_id": "324684580",
-                "name": "Spotify",
-                "store": "app_store",
-                "category": "Music"
             }
         ]
         
@@ -263,7 +243,7 @@ def health_check():
         return jsonify({
             "status": "healthy",
             "message": "API de Análise de Apps funcionando",
-            "version": "2.0.0",
+            "version": "3.0.0",
             "database": "connected",
             "stats": {
                 "total_apps": app_count,
