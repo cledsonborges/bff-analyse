@@ -13,7 +13,10 @@ class GooglePlayScrapingService:
     def search_apps(self, query, limit=10):
         """Busca aplicativos no Google Play Store"""
         try:
-             results = search(query, lang=\'pt\', country=\'br\', n_hits=limit)       for result in results:
+            logger.info(f"Buscando apps no Google Play: {query}")
+            results = search(query, lang=\'pt\', country=\'br\', n_hits=limit)
+            apps_data = []
+            for result in results:
                 app_data = {
                     \'app_id\': result[\'appId\'],
                     \'name\': result[\'title\'],
@@ -39,7 +42,9 @@ class GooglePlayScrapingService:
             
             # Adicionar delay para evitar rate limiting
             time.sleep(random.uniform(*self.delay_range))
-                        result = app(app_id, lang=\'pt\', country=\'br\')          app_data = {
+            
+            result = app(app_id, lang=\'pt\', country=\'br\')
+            app_data = {
                 \'app_id\': app_id,
                 \'name\': result.get(\'title\', \'\'),
                 \'store\': \'google_play\',
@@ -161,6 +166,8 @@ class GooglePlayScrapingService:
         except Exception as e:
             logger.error(f"Erro ao buscar apps da categoria {category}: {e}")
             return []
+
+
 
 
 
