@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from services.google_play_scraping_real import GooglePlayScrapingService
 from services.apple_store_scraping_real import AppleAppStoreScrapingService
 from models import db, App, Review
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)

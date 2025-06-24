@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -14,7 +14,7 @@ class App(db.Model):
     category = db.Column(db.String(100))
     description = db.Column(db.Text)
     icon_url = db.Column(db.String(500))
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    last_updated = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     
     reviews = db.relationship('Review', backref='app', lazy=True)
 
@@ -38,5 +38,5 @@ class AnalysisReport(db.Model):
     neutral_count = db.Column(db.Integer)
     avg_sentiment_score = db.Column(db.Float)
     main_issues = db.Column(db.Text)  # JSON string com principais problemas
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 

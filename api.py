@@ -95,7 +95,7 @@ def get_apps():
         return jsonify(apps_list)
     except Exception as e:
         logger.error(f"Erro ao buscar apps: {e}")
-        return jsonify({"error": "Erro interno do servidor"}), 500
+        return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
 
 @app.route("/api/apps/<app_id>", methods=["GET"])
 def get_app(app_id):
@@ -119,7 +119,7 @@ def get_app(app_id):
         })
     except Exception as e:
         logger.error(f"Erro ao buscar app {app_id}: {e}")
-        return jsonify({"error": "Erro interno do servidor"}), 500
+        return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
 
 @app.route("/api/apps/<app_id>/reviews", methods=["GET"])
 def get_app_reviews(app_id):
@@ -150,7 +150,7 @@ def get_app_reviews(app_id):
         return jsonify(reviews_list)
     except Exception as e:
         logger.error(f"Erro ao buscar reviews do app {app_id}: {e}")
-        return jsonify({"error": "Erro interno do servidor"}), 500
+        return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
 
 @app.route("/api/apps/<app_id>/analysis", methods=["GET"])
 def get_app_analysis(app_id):
@@ -198,7 +198,7 @@ def get_app_analysis(app_id):
         
     except Exception as e:
         logger.error(f"Erro ao buscar análise do app {app_id}: {e}")
-        return jsonify({"error": "Erro interno do servidor"}), 500
+        return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
 
 @app.route("/api/categories", methods=["GET"])
 def get_categories():
@@ -209,7 +209,7 @@ def get_categories():
         return jsonify(category_list)
     except Exception as e:
         logger.error(f"Erro ao buscar categorias: {e}")
-        return jsonify({"error": "Erro interno do servidor"}), 500
+        return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
 
 @app.route("/api/stores", methods=["GET"])
 def get_stores():

@@ -3,7 +3,7 @@ from app_store_scraper import AppStore
 import requests
 import time
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ class AppleAppStoreScrapingService:
                 'developer': result.get('artistName', ''),
                 'price': result.get('price', 0),
                 'free': result.get('price', 0) == 0,
-                'last_updated': datetime.utcnow()
+                'last_updated': datetime.now(timezone.utc)
             }
             
             logger.info(f"Detalhes obtidos para {app_data['name']}")
@@ -128,7 +128,7 @@ class AppleAppStoreScrapingService:
                     'user_name': review.get('userName', 'Usuário Anônimo'),
                     'content': review.get('review', ''),
                     'rating': review.get('rating', 0),
-                    'date': review.get('date', datetime.utcnow()),
+                    'date': review.get('date', datetime.now(timezone.utc)),
                     'title': review.get('title', ''),
                     'version': review.get('version', '')
                 }
