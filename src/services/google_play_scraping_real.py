@@ -79,7 +79,7 @@ class GooglePlayScrapingService:
                 app_id,
                 lang='pt',
                 country='br',
-                sort='newest',
+                sort=Sort.NEWEST,
                 count=count
             )
             
@@ -91,10 +91,10 @@ class GooglePlayScrapingService:
                     'user_name': review.get('userName', 'Usuário Anônimo'),
                     'content': review.get('content', ''),
                     'rating': review.get('score', 0),
-                    'date': review.get('at', datetime.now(timezone.utc)),
+                    'date': review.get('at', datetime.now(timezone.utc)).isoformat() if review.get('at') else datetime.now(timezone.utc).isoformat(),
                     'thumbs_up': review.get('thumbsUpCount', 0),
                     'reply_content': review.get('replyContent', ''),
-                    'reply_date': review.get('repliedAt', None)
+                    'reply_date': review.get('repliedAt').isoformat() if review.get('repliedAt') else None
                 }
                 reviews_data.append(review_data)
             
@@ -117,7 +117,7 @@ class GooglePlayScrapingService:
                 app_id,
                 lang='pt',
                 country='br',
-                sort='newest',
+                sort=Sort.NEWEST,
                 count=count,
                 continuation_token=continuation_token
             )
@@ -130,10 +130,10 @@ class GooglePlayScrapingService:
                     'user_name': review.get('userName', 'Usuário Anônimo'),
                     'content': review.get('content', ''),
                     'rating': review.get('score', 0),
-                    'date': review.get('at', datetime.now(timezone.utc)),
+                    'date': review.get('at', datetime.now(timezone.utc)).isoformat() if review.get('at') else datetime.now(timezone.utc).isoformat(),
                     'thumbs_up': review.get('thumbsUpCount', 0),
                     'reply_content': review.get('replyContent', ''),
-                    'reply_date': review.get('repliedAt', None)
+                    'reply_date': review.get('repliedAt').isoformat() if review.get('repliedAt') else None
                 }
                 reviews_data.append(review_data)
             
@@ -166,8 +166,4 @@ class GooglePlayScrapingService:
         except Exception as e:
             logger.error(f"Erro ao buscar apps da categoria {category}: {e}")
             return []
-
-
-
-
 

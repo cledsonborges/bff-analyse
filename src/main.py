@@ -120,7 +120,7 @@ def get_app_reviews(app_id):
         # Google Play Store (dados reais)
         if store == "google_play" and GOOGLE_PLAY_AVAILABLE:
             try:
-                reviews_list = google_play_service.get_app_reviews(app_id, limit=limit)
+                reviews_list, _ = google_play_service.get_app_reviews(app_id, count=limit)
             except Exception as e:
                 logger.error(f"Erro ao buscar reviews no Google Play: {e}")
         

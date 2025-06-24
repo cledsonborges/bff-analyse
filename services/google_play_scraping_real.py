@@ -79,7 +79,7 @@ class GooglePlayScrapingService:
                 app_id,
                 lang='pt',
                 country='br',
-                sort='newest',
+                sort=Sort.NEWEST,
                 count=count
             )
             
@@ -117,7 +117,7 @@ class GooglePlayScrapingService:
                 app_id,
                 lang='pt',
                 country='br',
-                sort='newest',
+                sort=Sort.NEWEST,
                 count=count,
                 continuation_token=continuation_token
             )
