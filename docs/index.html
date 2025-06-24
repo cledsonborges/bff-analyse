@@ -99,6 +99,14 @@
         .method.post { background: #49cc90; color: white; }
         .method.put { background: #fca130; color: white; }
         .method.delete { background: #f93e3e; color: white; }
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
@@ -112,33 +120,38 @@
             <div class="info-card">
                 <h3>📱 Sobre a API</h3>
                 <p>A BFF Analyse API permite coletar e analisar reviews de aplicativos móveis das principais lojas (Google Play Store e Apple App Store), fornecendo insights valiosos sobre sentimentos dos usuários.</p>
+                <div class="highlight">
+                    <strong>🆕 Novidade:</strong> Agora funciona 100% em tempo real, sem banco de dados! Todos os dados são coletados via scraping a cada requisição.
+                </div>
             </div>
             
             <div class="info-card">
                 <h3>🚀 Funcionalidades</h3>
                 <ul class="endpoint-list">
-                    <li>Busca e coleta de aplicativos</li>
+                    <li>Busca e coleta de aplicativos em tempo real</li>
                     <li>Extração de reviews em tempo real</li>
                     <li>Análise de sentimentos com IA</li>
-                    <li>Relatórios e estatísticas</li>
+                    <li>Relatórios e estatísticas instantâneas</li>
                     <li>Suporte a múltiplas lojas</li>
+                    <li>Deploy serverless compatível</li>
                 </ul>
             </div>
             
             <div class="info-card">
                 <h3>🔧 Principais Endpoints</h3>
                 <ul class="endpoint-list">
-                    <li><span class="method get">GET</span>/api/apps - Lista aplicativos</li>
-                    <li><span class="method get">GET</span>/api/apps/{id}/reviews - Reviews do app</li>
-                    <li><span class="method get">GET</span>/api/apps/{id}/analysis - Análise de sentimentos</li>
+                    <li><span class="method get">GET</span>/api/apps?query=termo - Buscar aplicativos</li>
+                    <li><span class="method get">GET</span>/api/apps/{id}?store=google_play - Detalhes do app</li>
+                    <li><span class="method get">GET</span>/api/apps/{id}/reviews?store=google_play - Reviews do app</li>
+                    <li><span class="method get">GET</span>/api/apps/{id}/analysis?store=google_play - Análise de sentimentos</li>
                     <li><span class="method post">POST</span>/api/scraping/search - Buscar novos apps</li>
-                    <li><span class="method post">POST</span>/api/sentiment/analyze-app/{id} - Analisar sentimentos</li>
+                    <li><span class="method post">POST</span>/api/sentiment/analyze-reviews - Analisar sentimentos</li>
                 </ul>
             </div>
             
             <div class="info-card">
                 <h3>📊 Tecnologias</h3>
-                <p>Construída com Flask, SQLAlchemy, Google Generative AI (Gemini), e bibliotecas especializadas para scraping de lojas de aplicativos.</p>
+                <p>Construída com Flask, Google Generative AI (Gemini), e bibliotecas especializadas para scraping de lojas de aplicativos. Totalmente serverless e sem dependências de banco de dados.</p>
             </div>
         </div>
     </div>
@@ -154,7 +167,7 @@
                 "swagger": "2.0",
                 "info": {
                     "title": "BFF Analyse API",
-                    "description": "API para análise de aplicativos móveis e reviews",
+                    "description": "API para análise de aplicativos móveis e reviews - Agora 100% em tempo real sem banco de dados",
                     "version": "3.0.0",
                     "contact": {
                         "name": "Cledson Alves",
@@ -192,26 +205,27 @@
                     "/api/apps": {
                         "get": {
                             "tags": ["Apps"],
-                            "summary": "Lista aplicativos disponíveis",
-                            "description": "Retorna lista de aplicativos com filtros opcionais",
+                            "summary": "Buscar aplicativos",
+                            "description": "Busca aplicativos em tempo real nas lojas (requer parâmetro query)",
                             "parameters": [
+                                {
+                                    "name": "query",
+                                    "in": "query",
+                                    "type": "string",
+                                    "required": true,
+                                    "description": "Termo de busca para aplicativos"
+                                },
                                 {
                                     "name": "store",
                                     "in": "query",
                                     "type": "string",
                                     "enum": ["google_play", "app_store"],
-                                    "description": "Filtrar por loja"
-                                },
-                                {
-                                    "name": "category",
-                                    "in": "query",
-                                    "type": "string",
-                                    "description": "Filtrar por categoria"
+                                    "description": "Filtrar por loja específica"
                                 }
                             ],
                             "responses": {
                                 "200": {
-                                    "description": "Lista de aplicativos",
+                                    "description": "Lista de aplicativos encontrados",
                                     "schema": {
                                         "type": "array",
                                         "items": {
@@ -219,11 +233,11 @@
                                         }
                                     }
                                 },
+                                "400": {
+                                    "description": "Parâmetro query é obrigatório"
+                                },
                                 "500": {
-                                    "description": "Erro interno do servidor",
-                                    "schema": {
-                                        "$ref": "#/definitions/Error"
-                                    }
+                                    "description": "Erro interno do servidor"
                                 }
                             }
                         }
@@ -232,7 +246,7 @@
                         "get": {
                             "tags": ["Apps"],
                             "summary": "Detalhes de um aplicativo",
-                            "description": "Retorna detalhes completos de um aplicativo específico",
+                            "description": "Retorna detalhes completos de um aplicativo específico em tempo real",
                             "parameters": [
                                 {
                                     "name": "app_id",
@@ -240,6 +254,14 @@
                                     "type": "string",
                                     "required": true,
                                     "description": "ID único do aplicativo"
+                                },
+                                {
+                                    "name": "store",
+                                    "in": "query",
+                                    "type": "string",
+                                    "enum": ["google_play", "app_store"],
+                                    "required": true,
+                                    "description": "Loja do aplicativo"
                                 }
                             ],
                             "responses": {
@@ -248,6 +270,9 @@
                                     "schema": {
                                         "$ref": "#/definitions/App"
                                     }
+                                },
+                                "400": {
+                                    "description": "Parâmetro store é obrigatório"
                                 },
                                 "404": {
                                     "description": "App não encontrado"
@@ -262,7 +287,7 @@
                         "get": {
                             "tags": ["Reviews"],
                             "summary": "Reviews de um aplicativo",
-                            "description": "Retorna lista de reviews com filtros opcionais",
+                            "description": "Retorna reviews em tempo real de um aplicativo",
                             "parameters": [
                                 {
                                     "name": "app_id",
@@ -272,18 +297,19 @@
                                     "description": "ID único do aplicativo"
                                 },
                                 {
+                                    "name": "store",
+                                    "in": "query",
+                                    "type": "string",
+                                    "enum": ["google_play", "app_store"],
+                                    "required": true,
+                                    "description": "Loja do aplicativo"
+                                },
+                                {
                                     "name": "limit",
                                     "in": "query",
                                     "type": "integer",
                                     "default": 20,
                                     "description": "Número máximo de reviews"
-                                },
-                                {
-                                    "name": "sentiment",
-                                    "in": "query",
-                                    "type": "string",
-                                    "enum": ["positive", "negative", "neutral"],
-                                    "description": "Filtrar por sentimento"
                                 }
                             ],
                             "responses": {
@@ -295,6 +321,9 @@
                                             "$ref": "#/definitions/Review"
                                         }
                                     }
+                                },
+                                "400": {
+                                    "description": "Parâmetro store é obrigatório"
                                 }
                             }
                         }
@@ -303,7 +332,7 @@
                         "get": {
                             "tags": ["Analysis"],
                             "summary": "Análise de sentimentos",
-                            "description": "Retorna análise completa de sentimentos do aplicativo",
+                            "description": "Retorna análise de sentimentos em tempo real do aplicativo",
                             "parameters": [
                                 {
                                     "name": "app_id",
@@ -311,6 +340,21 @@
                                     "type": "string",
                                     "required": true,
                                     "description": "ID único do aplicativo"
+                                },
+                                {
+                                    "name": "store",
+                                    "in": "query",
+                                    "type": "string",
+                                    "enum": ["google_play", "app_store"],
+                                    "required": true,
+                                    "description": "Loja do aplicativo"
+                                },
+                                {
+                                    "name": "limit",
+                                    "in": "query",
+                                    "type": "integer",
+                                    "default": 100,
+                                    "description": "Número máximo de reviews para análise"
                                 }
                             ],
                             "responses": {
@@ -319,6 +363,9 @@
                                     "schema": {
                                         "$ref": "#/definitions/Analysis"
                                     }
+                                },
+                                "400": {
+                                    "description": "Parâmetro store é obrigatório"
                                 }
                             }
                         }
@@ -327,7 +374,7 @@
                         "post": {
                             "tags": ["Scraping"],
                             "summary": "Buscar aplicativos",
-                            "description": "Busca e adiciona novos aplicativos ao banco de dados",
+                            "description": "Busca aplicativos em tempo real nas lojas",
                             "parameters": [
                                 {
                                     "name": "body",
@@ -361,34 +408,36 @@
                             }
                         }
                     },
-                    "/api/sentiment/analyze-app/{app_id}": {
+                    "/api/sentiment/analyze-reviews": {
                         "post": {
                             "tags": ["Analysis"],
-                            "summary": "Analisar sentimentos",
-                            "description": "Executa análise de sentimentos nas reviews do aplicativo",
+                            "summary": "Analisar sentimentos de reviews",
+                            "description": "Analisa sentimentos de uma lista de reviews fornecida",
                             "parameters": [
-                                {
-                                    "name": "app_id",
-                                    "in": "path",
-                                    "type": "string",
-                                    "required": true,
-                                    "description": "ID único do aplicativo"
-                                },
                                 {
                                     "name": "body",
                                     "in": "body",
+                                    "required": true,
                                     "schema": {
                                         "type": "object",
                                         "properties": {
-                                            "force_reanalysis": {
-                                                "type": "boolean",
-                                                "default": false
+                                            "reviews": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "content": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
                                             },
-                                            "limit": {
-                                                "type": "integer",
-                                                "default": 100
+                                            "app_name": {
+                                                "type": "string",
+                                                "description": "Nome do aplicativo"
                                             }
-                                        }
+                                        },
+                                        "required": ["reviews"]
                                     }
                                 }
                             ],
@@ -403,7 +452,7 @@
                         "get": {
                             "tags": ["Health"],
                             "summary": "Health check",
-                            "description": "Verifica o status da API e conexões",
+                            "description": "Verifica se a API está funcionando",
                             "responses": {
                                 "200": {
                                     "description": "API funcionando",
@@ -421,46 +470,42 @@
                         "properties": {
                             "app_id": {
                                 "type": "string",
-                                "description": "ID único do aplicativo"
+                                "example": "com.itau.investimentos"
                             },
                             "name": {
                                 "type": "string",
-                                "description": "Nome do aplicativo"
+                                "example": "Itaú Investimentos"
                             },
                             "store": {
                                 "type": "string",
                                 "enum": ["google_play", "app_store"],
-                                "description": "Loja do aplicativo"
+                                "example": "google_play"
                             },
                             "current_version": {
                                 "type": "string",
-                                "description": "Versão atual"
+                                "example": "1.0.0"
                             },
                             "rating": {
                                 "type": "number",
-                                "format": "float",
-                                "description": "Avaliação média"
+                                "example": 4.5
                             },
                             "total_reviews": {
                                 "type": "integer",
-                                "description": "Total de reviews"
+                                "example": 1000
                             },
                             "category": {
                                 "type": "string",
-                                "description": "Categoria do app"
+                                "example": "Finance"
                             },
                             "description": {
-                                "type": "string",
-                                "description": "Descrição do app"
+                                "type": "string"
                             },
                             "icon_url": {
-                                "type": "string",
-                                "description": "URL do ícone"
+                                "type": "string"
                             },
                             "last_updated": {
                                 "type": "string",
-                                "format": "date-time",
-                                "description": "Última atualização"
+                                "format": "date-time"
                             }
                         }
                     },
@@ -468,37 +513,34 @@
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "integer",
-                                "description": "ID da review"
+                                "type": "string"
                             },
                             "user_name": {
                                 "type": "string",
-                                "description": "Nome do usuário"
+                                "example": "João Silva"
                             },
                             "content": {
                                 "type": "string",
-                                "description": "Conteúdo da review"
+                                "example": "Excelente aplicativo!"
                             },
                             "rating": {
                                 "type": "integer",
                                 "minimum": 1,
                                 "maximum": 5,
-                                "description": "Avaliação (1-5)"
+                                "example": 5
                             },
                             "sentiment": {
                                 "type": "string",
                                 "enum": ["positive", "negative", "neutral"],
-                                "description": "Sentimento"
+                                "example": "positive"
                             },
                             "sentiment_score": {
                                 "type": "number",
-                                "format": "float",
-                                "description": "Score do sentimento"
+                                "example": 0.8
                             },
                             "date": {
                                 "type": "string",
-                                "format": "date-time",
-                                "description": "Data da review"
+                                "format": "date-time"
                             }
                         }
                     },
@@ -507,32 +549,27 @@
                         "properties": {
                             "total_reviews": {
                                 "type": "integer",
-                                "description": "Total de reviews analisadas"
+                                "example": 100
                             },
                             "positive_percentage": {
                                 "type": "number",
-                                "format": "float",
-                                "description": "Percentual positivo"
+                                "example": 65.5
                             },
                             "negative_percentage": {
                                 "type": "number",
-                                "format": "float",
-                                "description": "Percentual negativo"
+                                "example": 20.0
                             },
                             "neutral_percentage": {
                                 "type": "number",
-                                "format": "float",
-                                "description": "Percentual neutro"
+                                "example": 14.5
                             },
                             "avg_sentiment_score": {
                                 "type": "number",
-                                "format": "float",
-                                "description": "Score médio de sentimento"
+                                "example": 0.7
                             },
                             "last_updated": {
                                 "type": "string",
-                                "format": "date-time",
-                                "description": "Última atualização"
+                                "format": "date-time"
                             }
                         }
                     },
@@ -541,30 +578,19 @@
                         "properties": {
                             "status": {
                                 "type": "string",
-                                "description": "Status da API"
+                                "example": "healthy"
                             },
                             "message": {
                                 "type": "string",
-                                "description": "Mensagem de status"
+                                "example": "API funcionando"
                             },
                             "version": {
                                 "type": "string",
-                                "description": "Versão da API"
+                                "example": "3.0.0"
                             },
                             "database": {
                                 "type": "string",
-                                "description": "Status do banco"
-                            },
-                            "stats": {
-                                "type": "object",
-                                "properties": {
-                                    "total_apps": {
-                                        "type": "integer"
-                                    },
-                                    "total_reviews": {
-                                        "type": "integer"
-                                    }
-                                }
+                                "example": "disconnected"
                             }
                         }
                     },
@@ -573,15 +599,15 @@
                         "properties": {
                             "error": {
                                 "type": "string",
-                                "description": "Mensagem de erro"
+                                "example": "Erro interno do servidor"
                             }
                         }
                     }
                 }
             };
 
-            // Inicializar Swagger UI
-            const ui = SwaggerUIBundle({
+            SwaggerUIBundle({
+                url: '',
                 spec: spec,
                 dom_id: '#swagger-ui',
                 deepLinking: true,
@@ -592,16 +618,8 @@
                 plugins: [
                     SwaggerUIBundle.plugins.DownloadUrl
                 ],
-                layout: "StandaloneLayout",
-                tryItOutEnabled: true,
-                requestInterceptor: function(request) {
-                    // Adicionar headers padrão se necessário
-                    request.headers['Content-Type'] = 'application/json';
-                    return request;
-                }
+                layout: "StandaloneLayout"
             });
-
-            window.ui = ui;
         };
     </script>
 </body>
