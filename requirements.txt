@@ -1,5 +1,12 @@
-Flask==3.0.3
+# requirements.txt — Compatível com Flasgger
+Flask==2.2.5
 flask-cors==5.0.0
+flasgger==0.9.7.1
 google-play-scraper==1.2.7
-requests==2.23.0
+requests==2.31.0
+urllib3==1.26.18
+six==1.16.0
+certifi==2024.2.2
+charset-normalizer==3.3.2
+idna==3.6
 
