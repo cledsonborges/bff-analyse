@@ -26,7 +26,7 @@ class Review(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     sentiment = db.Column(db.String(20))  # 'positive', 'negative', 'neutral'
     sentiment_score = db.Column(db.Float)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     review_id = db.Column(db.String(100))  # ID único da review na loja
 
 class AnalysisReport(db.Model):

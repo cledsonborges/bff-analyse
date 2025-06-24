@@ -4,11 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 import logging
 from models import db, App, Review, AnalysisReport
-
 import os
+from datetime import datetime, timezone
 
 # Configurar API Key do Gemini
-os.environ['GEMINI_API_KEY'] = 'AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI'
+os.environ['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY', 'SUA_CHAVE_AQUI')
 
 
 # Configurar logging
@@ -55,23 +55,8 @@ except ImportError as e:
 
 # Função para popular dados iniciais
 def populate_initial_data():
-    if App.query.count() == 0:
-        # Apps populares para demonstração
-        apps_data = [
-            {
-                "app_id": "com.whatsapp",
-                "name": "WhatsApp Messenger-mocks",
-                "store": "google_play",
-                "category": "Comunicação"
-            }
-        ]
-        
-        for app_data in apps_data:
-            app = App(**app_data)
-            db.session.add(app)
-        
-        db.session.commit()
-        logger.info("Dados iniciais populados")
+    # Não popular dados iniciais, pois serão coletados via scraping
+    pass
 
 # Popular dados na inicialização
 with app.app_context():
@@ -198,7 +183,7 @@ def get_app_analysis(app_id):
                 "negative_percentage": round((negative / total) * 100, 1),
                 "neutral_percentage": round((neutral / total) * 100, 1),
                 "avg_sentiment_score": sum([r.sentiment_score or 0 for r in reviews]) / total if total > 0 else 0,
-                "last_updated": datetime.utcnow().isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             })
         
         total = report.positive_count + report.negative_count + report.neutral_count

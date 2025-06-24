@@ -19,17 +19,14 @@ class SentimentAnalysisService:
         self.api_key = api_key or os.getenv('GEMINI_API_KEY')
         
         if not self.api_key:
-            logger.warning("GEMINI_API_KEY não configurada. Usando análise mock.")
-            self.use_mock = True
-        else:
-            try:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-pro')
-                self.use_mock = False
-                logger.info("Serviço Gemini configurado com sucesso")
-            except Exception as e:
-                logger.error(f"Erro ao configurar Gemini: {e}")
-                self.use_mock = True
+            raise ValueError("GEMINI_API_KEY não configurada. Por favor, defina a variável de ambiente.")
+        
+        try:
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel("gemini-pro")
+            logger.info("Serviço Gemini configurado com sucesso")
+        except Exception as e:
+            raise RuntimeError(f"Erro ao configurar Gemini: {e}")
         
         self.delay_range = (1, 2)  # Delay entre requests para evitar rate limiting
     
@@ -43,8 +40,7 @@ class SentimentAnalysisService:
         Returns:
             Dict com sentiment ('positive', 'negative', 'neutral') e score (0-1)
         """
-        if self.use_mock:
-            return self._mock_sentiment_analysis(review_text)
+
         
         try:
             # Adicionar delay para evitar rate limiting
@@ -98,7 +94,7 @@ class SentimentAnalysisService:
         except Exception as e:
             logger.error(f"Erro na análise de sentimento: {e}")
             # Fallback para análise mock
-            return self._mock_sentiment_analysis(review_text)
+            raise
     
     def analyze_batch_reviews(self, reviews: List[Dict]) -> List[Dict]:
         """
@@ -129,13 +125,7 @@ class SentimentAnalysisService:
                 
             except Exception as e:
                 logger.error(f"Erro ao analisar review {review.get('id', 'unknown')}: {e}")
-                # Adicionar resultado mock em caso de erro
-                results.append({
-                    'review_id': review.get('id'),
-                    'sentiment': 'neutral',
-                    'sentiment_score': 0.5,
-                    'reasoning': 'Erro na análise'
-                })
+                raise
         
         return results
     
@@ -216,56 +206,7 @@ class SentimentAnalysisService:
             logger.error(f"Erro na análise de resumo: {e}")
             return self._mock_app_summary(app_name, reviews_summary)
     
-    def _mock_sentiment_analysis(self, review_text: str) -> Dict:
-        """Análise mock para quando a API não está disponível"""
-        # Análise simples baseada em palavras-chave
-        positive_words = ['bom', 'ótimo', 'excelente', 'perfeito', 'recomendo', 'gosto', 'funciona', 'rápido']
-        negative_words = ['ruim', 'péssimo', 'horrível', 'lento', 'trava', 'bug', 'problema', 'não funciona']
-        
-        text_lower = review_text.lower()
-        
-        positive_score = sum(1 for word in positive_words if word in text_lower)
-        negative_score = sum(1 for word in negative_words if word in text_lower)
-        
-        if positive_score > negative_score:
-            sentiment = 'positive'
-            score = min(0.7 + positive_score * 0.1, 0.95)
-        elif negative_score > positive_score:
-            sentiment = 'negative'
-            score = min(0.7 + negative_score * 0.1, 0.95)
-        else:
-            sentiment = 'neutral'
-            score = 0.6
-        
-        return {
-            'sentiment': sentiment,
-            'score': score,
-            'reasoning': 'Análise baseada em palavras-chave (mock)'
-        }
+
     
-    def _mock_app_summary(self, app_name: str, reviews_summary: List[Dict]) -> Dict:
-        """Resumo mock para quando a API não está disponível"""
-        positive_count = len([r for r in reviews_summary if r['sentiment'] == 'positive'])
-        negative_count = len([r for r in reviews_summary if r['sentiment'] == 'negative'])
-        neutral_count = len([r for r in reviews_summary if r['sentiment'] == 'neutral'])
-        total_count = len(reviews_summary)
-        
-        if positive_count > negative_count:
-            overall_sentiment = 'positive'
-        elif negative_count > positive_count:
-            overall_sentiment = 'negative'
-        else:
-            overall_sentiment = 'neutral'
-        
-        return {
-            'overall_sentiment': overall_sentiment,
-            'confidence': 0.7,
-            'main_issues': ['Análise mock ativa'],
-            'main_positives': ['Configure GEMINI_API_KEY para análise real'],
-            'recommendation': 'Configure a API do Gemini para análises mais precisas',
-            'total_reviews': total_count,
-            'positive_percentage': round(positive_count/total_count*100, 1) if total_count > 0 else 0,
-            'negative_percentage': round(negative_count/total_count*100, 1) if total_count > 0 else 0,
-            'neutral_percentage': round(neutral_count/total_count*100, 1) if total_count > 0 else 0
-        }
+
 

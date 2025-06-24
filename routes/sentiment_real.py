@@ -86,7 +86,7 @@ def analyze_app_sentiment(app_id):
             existing_report.neutral_count = int(app_summary["neutral_percentage"] * app_summary["total_reviews"] / 100)
             existing_report.avg_sentiment_score = app_summary.get("confidence", 0.5)
             existing_report.main_issues = json.dumps(app_summary.get("main_issues", []))
-            existing_report.created_at = datetime.utcnow()
+            existing_report.created_at = datetime.now(timezone.utc)
         else:
             # Criar novo relatório
             new_report = AnalysisReport(

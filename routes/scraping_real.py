@@ -120,7 +120,7 @@ def update_app_details(app_id):
         app.category = app_data.get('category', app.category)
         app.description = app_data.get('description', app.description)
         app.icon_url = app_data.get('icon_url', app.icon_url)
-        app.last_updated = datetime.utcnow()
+        app.last_updated = datetime.now(timezone.utc)
         
         db.session.commit()
         
@@ -179,7 +179,7 @@ def collect_app_reviews(app_id):
                     user_name=review_data.get('user_name', 'Usuário Anônimo'),
                     content=review_data.get('content', ''),
                     rating=review_data.get('rating', 0),
-                    date=review_data.get('date', datetime.utcnow())
+                    date=review_data.get("date", datetime.now(timezone.utc))
                 )
                 db.session.add(new_review)
                 new_reviews += 1
