@@ -1,8 +1,5 @@
 Flask==3.0.3
 flask-cors==5.0.0
-google-play-scraper==1.0.0
-app-store-scraper
+google-play-scraper==1.2.7
 requests==2.23.0
-google-generativeai
-flasgger==0.9.7.1
 
