@@ -42,44 +42,69 @@ class BacklogAnalysisService:
             Reviews:
             {reviews_text}
 
-            Com base na análise, gere um backlog de desenvolvimento estruturado em JSON com o seguinte formato:
+            Com base na análise, gere um backlog de desenvolvimento estruturado em JSON válido com o seguinte formato EXATO:
 
             {{
                 "summary": {{
-                    "total_reviews_analyzed": número_de_reviews,
-                    "critical_issues_found": número_de_problemas_críticos,
-                    "improvement_suggestions": número_de_melhorias,
+                    "total_reviews_analyzed": {len(reviews)},
+                    "critical_issues_found": 0,
+                    "improvement_suggestions": 0,
                     "app_name": "{app_name}"
                 }},
                 "backlog_items": [
                     {{
                         "title": "Título da tarefa",
                         "description": "Descrição detalhada do problema ou melhoria",
-                        "priority": "High|Medium|Low",
-                        "category": "Bug|Feature|Improvement|Performance|UI/UX",
-                        "estimated_effort": "1|2|3|5|8|13",
-                        "user_impact": "High|Medium|Low",
-                        "evidence": ["review 1 que menciona o problema", "review 2 relacionado"],
-                        "acceptance_criteria": ["critério 1", "critério 2", "critério 3"]
+                        "priority": "High",
+                        "category": "Bug",
+                        "estimated_effort": "5",
+                        "user_impact": "High",
+                        "evidence": ["review que menciona o problema"],
+                        "acceptance_criteria": ["critério 1", "critério 2"]
                     }}
                 ]
             }}
 
-            Foque em:
-            1. Crashes e falhas técnicas (prioridade alta)
-            2. Problemas de performance (prioridade alta/média)
-            3. Bugs de funcionalidade (prioridade média/alta)
-            4. Melhorias de UX/UI (prioridade média/baixa)
-            5. Novas funcionalidades solicitadas (prioridade baixa/média)
+            INSTRUÇÕES IMPORTANTES:
+            1. Retorne APENAS o JSON válido, sem texto adicional antes ou depois
+            2. Use aspas duplas para todas as strings
+            3. Não use quebras de linha dentro das strings
+            4. Prioridades: "High", "Medium", "Low"
+            5. Categorias: "Bug", "Feature", "Improvement", "Performance", "UI/UX"
+            6. Esforço estimado: "1", "2", "3", "5", "8", "13"
+            7. Impacto no usuário: "High", "Medium", "Low"
+            8. Atualize os contadores no summary baseado nos itens gerados
 
-            Retorne apenas o JSON válido, sem texto adicional.
+            Foque em:
+            - Crashes e falhas técnicas (prioridade alta)
+            - Problemas de performance (prioridade alta/média)
+            - Bugs de funcionalidade (prioridade média/alta)
+            - Melhorias de UX/UI (prioridade média/baixa)
+            - Novas funcionalidades solicitadas (prioridade baixa/média)
             """
             
             response = self.model.generate_content(prompt)
             
+            # Limpar e extrair JSON da resposta
+            response_text = response.text.strip()
+            
+            # Remover possíveis marcadores de código
+            if response_text.startswith('```json'):
+                response_text = response_text[7:]
+            if response_text.startswith('```'):
+                response_text = response_text[3:]
+            if response_text.endswith('```'):
+                response_text = response_text[:-3]
+            
+            response_text = response_text.strip()
+            
             # Parse da resposta JSON
             try:
-                backlog_data = json.loads(response.text)
+                backlog_data = json.loads(response_text)
+                
+                # Validar estrutura básica
+                if not isinstance(backlog_data, dict) or 'summary' not in backlog_data or 'backlog_items' not in backlog_data:
+                    raise ValueError("Estrutura JSON inválida")
                 
                 # Adicionar metadados
                 backlog_data["metadata"] = {
@@ -91,12 +116,12 @@ class BacklogAnalysisService:
                 
                 return backlog_data
                 
-            except json.JSONDecodeError as e:
+            except (json.JSONDecodeError, ValueError) as e:
                 logger.error(f"Erro ao fazer parse do JSON da resposta do Gemini: {e}")
-                logger.error(f"Resposta recebida: {response.text}")
+                logger.error(f"Resposta recebida: {response_text}")
                 
                 # Fallback: retornar estrutura básica
-                return self._create_fallback_backlog(reviews, app_name, response.text)
+                return self._create_fallback_backlog(reviews, app_name, response_text)
                 
         except Exception as e:
             logger.error(f"Erro na análise de backlog: {e}")
@@ -134,6 +159,39 @@ class BacklogAnalysisService:
         Returns:
             Dict com backlog básico
         """
+        # Tentar extrair JSON parcial da resposta
+        try:
+            # Procurar por JSON válido na resposta
+            import re
+            json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
+            if json_match:
+                potential_json = json_match.group(0)
+                try:
+                    parsed_data = json.loads(potential_json)
+                    if isinstance(parsed_data, dict) and 'backlog_items' in parsed_data:
+                        # JSON parcial válido encontrado
+                        if 'summary' not in parsed_data:
+                            parsed_data['summary'] = {
+                                "total_reviews_analyzed": len(reviews),
+                                "critical_issues_found": len([item for item in parsed_data.get('backlog_items', []) if item.get('priority') == 'High']),
+                                "improvement_suggestions": len([item for item in parsed_data.get('backlog_items', []) if item.get('category') in ['Improvement', 'Feature']]),
+                                "app_name": app_name
+                            }
+                        
+                        parsed_data["metadata"] = {
+                            "generated_at": datetime.now().isoformat(),
+                            "generated_by": "Gemini AI (Partial Parse)",
+                            "app_name": app_name,
+                            "reviews_count": len(reviews)
+                        }
+                        
+                        return parsed_data
+                except json.JSONDecodeError:
+                    pass
+        except Exception:
+            pass
+        
+        # Se não conseguir extrair JSON válido, criar estrutura básica
         return {
             "summary": {
                 "total_reviews_analyzed": len(reviews),
@@ -145,7 +203,7 @@ class BacklogAnalysisService:
             "backlog_items": [
                 {
                     "title": "Análise manual necessária",
-                    "description": f"A IA gerou uma resposta que precisa ser analisada manualmente: {ai_response[:500]}...",
+                    "description": f"A IA gerou uma resposta que precisa ser analisada manualmente. Resposta: {ai_response[:500]}{'...' if len(ai_response) > 500 else ''}",
                     "priority": "Medium",
                     "category": "Analysis",
                     "estimated_effort": "3",
