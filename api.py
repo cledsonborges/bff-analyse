@@ -12,7 +12,7 @@ from services.apple_store_scraping_real import AppleAppStoreScrapingService
 from services.sentiment_analysis_real import SentimentAnalysisService
 
 # Configurar API Key do Gemini
-os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY", "SUA_CHAVE_AQUI")
+os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY", "AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI")
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -189,7 +189,7 @@ def get_app_reviews(app_id):
 
         reviews_list = []
         if store == "google_play":
-            reviews_list = google_play_service.get_app_reviews(app_id, limit=limit)
+            reviews_list, _ = google_play_service.get_app_reviews(app_id, limit=limit)
         elif store == "app_store":
             reviews_list = apple_store_service.get_app_reviews(app_id, limit=limit)
 
@@ -240,7 +240,7 @@ def get_app_analysis(app_id):
 
         reviews_data = []
         if store == "google_play":
-            reviews_data = google_play_service.get_app_reviews(app_id, limit=limit)
+            reviews_data, _ = google_play_service.get_app_reviews(app_id, limit=limit)
         elif store == "app_store":
             reviews_data = apple_store_service.get_app_reviews(app_id, limit=limit)
 

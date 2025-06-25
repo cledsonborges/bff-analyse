@@ -299,3 +299,6 @@ class SentimentAnalysisService:
                 'neutral_percentage': 0
             }
 
+
+import google.generativeai as genai
+
