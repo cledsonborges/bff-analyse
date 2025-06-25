@@ -2,7 +2,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import logging
 import os
-from datetime import datetime, timezone
+import re
+import jwt
+from datetime import datetime, timezone, timedelta
 from flasgger import swag_from
 from swagger_config import init_swagger
 
@@ -20,6 +22,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+# Configurar chave secreta para JWT
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'itau-bff-secret-key-2024')
 
 # Inicializar Swagger
 swagger = init_swagger(app)
@@ -50,6 +55,213 @@ try:
     logger.info("Blueprint de backlog registrado")
 except ImportError as e:
     logger.warning(f"Não foi possível importar blueprint de backlog: {e}")
+
+# Funções auxiliares para autenticação
+def is_valid_email(email):
+    """Valida se o email tem formato válido"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def generate_jwt_token(email):
+    """Gera token JWT para o usuário"""
+    payload = {
+        'email': email,
+        'exp': datetime.utcnow() + timedelta(hours=24),
+        'iat': datetime.utcnow()
+    }
+    return jwt.encode(payload, app.config['JWT_SECRET_KEY'], algorithm='HS256')
+
+def verify_jwt_token(token):
+    """Verifica e decodifica token JWT"""
+    try:
+        payload = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def log_user_access(email, action="login"):
+    """Registra acesso do usuário no log"""
+    timestamp = datetime.now(timezone.utc).isoformat()
+    log_message = f"[{timestamp}] USER_ACCESS - Email: {email}, Action: {action}"
+    logger.info(log_message)
+    
+    # Também salvar em arquivo específico para auditoria
+    try:
+        with open('user_access.log', 'a', encoding='utf-8') as f:
+            f.write(f"{log_message}\n")
+    except Exception as e:
+        logger.error(f"Erro ao escrever no arquivo de log: {e}")
+
+# Rotas de autenticação
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    """
+    Endpoint de login que valida email e gera token JWT
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              description: Email do usuário
+              example: "usuario@itau.com.br"
+          required:
+            - email
+    responses:
+      200:
+        description: Login realizado com sucesso
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Login realizado com sucesso"
+            token:
+              type: string
+              description: Token JWT para autenticação
+            user:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "usuario@itau.com.br"
+      400:
+        description: Email inválido ou não fornecido
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "Email é obrigatório"
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'email' not in data:
+            return jsonify({
+                "success": False,
+                "error": "Email é obrigatório"
+            }), 400
+        
+        email = data['email'].strip().lower()
+        
+        if not is_valid_email(email):
+            return jsonify({
+                "success": False,
+                "error": "Formato de email inválido"
+            }), 400
+        
+        # Registrar acesso no log
+        log_user_access(email, "login")
+        
+        # Gerar token JWT
+        token = generate_jwt_token(email)
+        
+        return jsonify({
+            "success": True,
+            "message": "Login realizado com sucesso",
+            "token": token,
+            "user": {
+                "email": email
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Erro no login: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Erro interno do servidor"
+        }), 500
+
+@app.route("/api/auth/verify", methods=["POST"])
+def verify_token():
+    """
+    Verifica se o token JWT é válido
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Bearer token JWT
+    responses:
+      200:
+        description: Token válido
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            user:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "usuario@itau.com.br"
+      401:
+        description: Token inválido ou expirado
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "Token inválido"
+    """
+    try:
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({
+                "success": False,
+                "error": "Token não fornecido"
+            }), 401
+        
+        token = auth_header.split(' ')[1]
+        payload = verify_jwt_token(token)
+        
+        if not payload:
+            return jsonify({
+                "success": False,
+                "error": "Token inválido ou expirado"
+            }), 401
+        
+        return jsonify({
+            "success": True,
+            "user": {
+                "email": payload['email']
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Erro na verificação do token: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Erro interno do servidor"
+        }), 500
 
 # Rotas da API
 @app.route("/api/apps", methods=["GET"])

@@ -10,3 +10,6 @@ certifi==2024.2.2
 charset-normalizer==3.3.2
 idna==3.6
 google-generativeai==0.4.1
+
+PyJWT==2.8.0
+
