@@ -1,5 +1,4 @@
 import logging
-from app_store_scraper import AppStore
 import requests
 import time
 import random
@@ -27,7 +26,7 @@ class AppleAppStoreScrapingService:
             }
             
             time.sleep(random.uniform(*self.delay_range))
-            response = requests.get(search_url, params=params)
+            response = requests.get(search_url, params=params, timeout=30)
             
             if response.status_code != 200:
                 logger.error(f"Erro na busca: {response.status_code}")
@@ -72,7 +71,7 @@ class AppleAppStoreScrapingService:
             }
             
             time.sleep(random.uniform(*self.delay_range))
-            response = requests.get(lookup_url, params=params)
+            response = requests.get(lookup_url, params=params, timeout=30)
             
             if response.status_code != 200:
                 logger.error(f"Erro ao obter detalhes: {response.status_code}")
@@ -110,35 +109,63 @@ class AppleAppStoreScrapingService:
             return None
     
     def get_app_reviews(self, app_id, count=100):
-        """Obtém reviews de um aplicativo"""
+        """Obtém reviews de um aplicativo usando RSS feed (método alternativo)"""
         try:
-            logger.info(f"Coletando {count} reviews do app: {app_id}")
+            logger.info(f"Tentando coletar reviews do app: {app_id}")
             
             time.sleep(random.uniform(*self.delay_range))
             
-            # Usar app-store-scraper para reviews
-            app_store = AppStore(country='br', app_name='', app_id=app_id)
-            app_store.review(how_many=count)
+            # Usar RSS feed para reviews (método limitado mas funcional)
+            rss_url = f"{self.base_url}/br/rss/customerreviews/id={app_id}/json"
+            
+            response = requests.get(rss_url, timeout=30)
+            
+            if response.status_code != 200:
+                logger.warning(f"Não foi possível obter reviews via RSS para app {app_id}")
+                return []
+            
+            data = response.json()
+            entries = data.get('feed', {}).get('entry', [])
+            
+            # Pular a primeira entrada que é metadados do app
+            review_entries = entries[1:] if len(entries) > 1 else []
             
             reviews_data = []
-            for review in app_store.reviews:
-                review_data = {
-                    'app_id': app_id,
-                    'review_id': review.get('id', ''),
-                    'user_name': review.get('userName', 'Usuário Anônimo'),
-                    'content': review.get('review', ''),
-                    'rating': review.get('rating', 0),
-                    'date': review.get('date', datetime.now(timezone.utc)),
-                    'title': review.get('title', ''),
-                    'version': review.get('version', '')
-                }
-                reviews_data.append(review_data)
+            for i, entry in enumerate(review_entries[:count]):
+                try:
+                    # Processar entry do RSS
+                    content = entry.get('content', {}).get('label', '')
+                    author = entry.get('author', {}).get('name', {}).get('label', 'Usuário Anônimo')
+                    rating_text = entry.get('im:rating', {}).get('label', '0')
+                    
+                    # Extrair rating numérico
+                    try:
+                        rating = int(rating_text)
+                    except:
+                        rating = 0
+                    
+                    review_data = {
+                        'app_id': app_id,
+                        'review_id': f"{app_id}_{i}",
+                        'user_name': author,
+                        'content': content,
+                        'rating': rating,
+                        'date': datetime.now(timezone.utc),
+                        'title': entry.get('title', {}).get('label', ''),
+                        'version': entry.get('im:version', {}).get('label', '')
+                    }
+                    reviews_data.append(review_data)
+                except Exception as review_error:
+                    logger.warning(f"Erro ao processar review individual: {review_error}")
+                    continue
             
-            logger.info(f"Coletadas {len(reviews_data)} reviews")
+            logger.info(f"Coletadas {len(reviews_data)} reviews via RSS")
             return reviews_data
             
         except Exception as e:
             logger.error(f"Erro ao coletar reviews do app {app_id}: {e}")
+            # Retornar lista vazia em caso de erro, mas não falhar completamente
+            logger.info(f"Retornando lista vazia de reviews para app {app_id}")
             return []
     
     def get_popular_apps_by_category(self, category='social-networking', limit=20):
@@ -174,7 +201,7 @@ class AppleAppStoreScrapingService:
             charts_url = f"{self.base_url}/br/rss/topfreeapplications/limit={limit}/genre={genre_id}/json"
             
             time.sleep(random.uniform(*self.delay_range))
-            response = requests.get(charts_url)
+            response = requests.get(charts_url, timeout=30)
             
             if response.status_code != 200:
                 logger.error(f"Erro ao obter charts: {response.status_code}")
@@ -185,19 +212,36 @@ class AppleAppStoreScrapingService:
             
             apps_data = []
             for entry in entries:
-                # Extrair ID do app da URL
-                app_url = entry.get('id', {}).get('attributes', {}).get('im:id', '')
-                
-                app_data = {
-                    'app_id': app_url,
-                    'name': entry.get('im:name', {}).get('label', ''),
-                    'store': 'app_store',
-                    'category': entry.get('category', {}).get('attributes', {}).get('label', ''),
-                    'icon_url': entry.get('im:image', [{}])[-1].get('label', ''),
-                    'developer': entry.get('im:artist', {}).get('label', ''),
-                    'price': entry.get('im:price', {}).get('attributes', {}).get('amount', '0')
-                }
-                apps_data.append(app_data)
+                try:
+                    # Extrair ID do app da URL
+                    app_url = entry.get('id', {}).get('attributes', {}).get('im:id', '')
+                    
+                    # Pegar informações das imagens (diferentes tamanhos disponíveis)
+                    images = entry.get('im:image', [])
+                    icon_url = images[-1].get('label', '') if images else ''
+                    
+                    # Processar preço
+                    price_info = entry.get('im:price', {}).get('attributes', {})
+                    price = price_info.get('amount', '0')
+                    try:
+                        price = float(price)
+                    except:
+                        price = 0
+                    
+                    app_data = {
+                        'app_id': app_url,
+                        'name': entry.get('im:name', {}).get('label', ''),
+                        'store': 'app_store',
+                        'category': entry.get('category', {}).get('attributes', {}).get('label', ''),
+                        'icon_url': icon_url,
+                        'developer': entry.get('im:artist', {}).get('label', ''),
+                        'price': price,
+                        'free': price == 0
+                    }
+                    apps_data.append(app_data)
+                except Exception as app_error:
+                    logger.warning(f"Erro ao processar app individual dos charts: {app_error}")
+                    continue
             
             logger.info(f"Obtidos {len(apps_data)} apps dos charts")
             return apps_data
@@ -206,3 +250,24 @@ class AppleAppStoreScrapingService:
             logger.error(f"Erro ao obter top charts: {e}")
             return []
 
+    def get_app_reviews_alternative(self, app_id, count=100):
+        """Método alternativo para obter reviews (placeholder para futuras implementações)"""
+        logger.info(f"Método alternativo de reviews não implementado para app {app_id}")
+        logger.info("Retornando informações básicas do app como fallback")
+        
+        # Como fallback, retorna detalhes básicos do app formatados como "review"
+        app_details = self.get_app_details(app_id)
+        if app_details:
+            fallback_review = {
+                'app_id': app_id,
+                'review_id': f"{app_id}_fallback",
+                'user_name': 'Sistema',
+                'content': f"App: {app_details.get('name', 'N/A')} - {app_details.get('description', 'Sem descrição')[:200]}...",
+                'rating': app_details.get('rating', 0),
+                'date': datetime.now(timezone.utc),
+                'title': 'Informações do App',
+                'version': app_details.get('current_version', '')
+            }
+            return [fallback_review]
+        
+        return []
