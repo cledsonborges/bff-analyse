@@ -196,9 +196,9 @@ def get_app_reviews(app_id):
 
         reviews_list = []
         if store == "google_play":
-            reviews_list, _ = google_play_service.get_app_reviews(app_id, limit=limit)
+            reviews_list, _ = google_play_service.get_app_reviews(app_id, 200)
         elif store == "app_store":
-            reviews_list = apple_store_service.get_app_reviews(app_id, limit=limit)
+            reviews_list = apple_store_service.get_app_reviews(app_id, 200)
 
         return jsonify(reviews_list)
     except Exception as e:
@@ -247,9 +247,9 @@ def get_app_analysis(app_id):
 
         reviews_data = []
         if store == "google_play":
-            reviews_data, _ = google_play_service.get_app_reviews(app_id, limit=limit)
+            reviews_data, _ = google_play_service.get_app_reviews(app_id, count=limit)
         elif store == "app_store":
-            reviews_data = apple_store_service.get_app_reviews(app_id, limit=limit)
+            reviews_data = apple_store_service.get_app_reviews(app_id, count=limit)
 
         if not reviews_data:
             return jsonify({
