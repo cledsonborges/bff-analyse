@@ -81,7 +81,7 @@ def get_app_reviews_route(app_id):
 
         reviews_list = []
         if store == "google_play":
-            reviews_list = google_play_service.get_app_reviews(app_id, limit=limit)
+            reviews_list = google_play_service.get_app_reviews(app_id, count=limit)
         elif store == "app_store":
             reviews_list = apple_store_service.get_app_reviews(app_id, limit=limit)
 
