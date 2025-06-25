@@ -1,5 +1,5 @@
 import logging
-
+import google.generativeai as genai
 import json
 import time
 import random
@@ -15,9 +15,9 @@ class SentimentAnalysisService:
         Args:
             api_key: Chave da API do Gemini. Se não fornecida, tentará obter da variável de ambiente
         """
-        self.api_key = 'GEMINI_API_KEY'
+        self.api_key = api_key or 'AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI'
         
-        if not self.api_key or self.api_key == 'AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI':
+        if not self.api_key or self.api_key == 'SUA_CHAVE_AQUI':
             logger.warning("GEMINI_API_KEY não configurada. Usando análise básica de fallback.")
             self.use_fallback = True
         else:
