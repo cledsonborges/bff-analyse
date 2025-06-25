@@ -24,7 +24,7 @@ class SentimentAnalysisService:
         else:
             try:
                 genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel("gemini-pro")
+                self.model = genai.GenerativeModel("gemini-1.5-flash")
                 self.use_fallback = False
                 logger.info("Serviço Gemini configurado com sucesso")
             except Exception as e:

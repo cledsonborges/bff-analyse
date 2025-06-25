@@ -18,7 +18,7 @@ class BacklogAnalysisService:
         """
         self.api_key = api_key
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
         
     def analyze_reviews_for_backlog(self, reviews: List[Dict], app_name: str) -> Dict[str, Any]:
         """
