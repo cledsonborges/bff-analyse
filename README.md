@@ -1,7 +1,7 @@
 ## Agente de IA para Análise de Aplicativos - Back-end
 
 Este é o back-end do sistema de análise automática de aplicativos da Google Play Store e Apple App Store.
-
+#
 ## Funcionalidades
 
 - 🔍 **Scraping de Dados**: Coleta automática de avaliações e informações dos apps
