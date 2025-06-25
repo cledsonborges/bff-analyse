@@ -17,7 +17,7 @@ class SentimentAnalysisService:
         """
         self.api_key = 'GEMINI_API_KEY'
         
-        if not self.api_key or self.api_key == 'SUA_CHAVE_AQUI':
+        if not self.api_key or self.api_key == 'AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI':
             logger.warning("GEMINI_API_KEY não configurada. Usando análise básica de fallback.")
             self.use_fallback = True
         else:
