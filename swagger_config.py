@@ -2,7 +2,9 @@ from flask import Flask
 from flasgger import Swagger
 
 def init_swagger(app: Flask):
-    """Inicializa o Swagger para a aplicação Flask"""
+    """
+    Inicializa o Swagger para a aplicação Flask
+    """
     
     swagger_config = {
         "headers": [],
@@ -30,7 +32,7 @@ def init_swagger(app: Flask):
                 "email": "cledsonborges@gmail.com"
             }
         },
-        "host": "localhost:5002",
+        "host": "localhost:5003",
         "basePath": "/",
         "schemes": ["http", "https"],
         "consumes": ["application/json"],
@@ -49,8 +51,8 @@ def init_swagger(app: Flask):
                 "description": "Operações de análise de sentimentos"
             },
             {
-                "name": "Scraping",
-                "description": "Operações de coleta de dados"
+                "name": "Backlog",
+                "description": "Operações de geração de backlog"
             },
             {
                 "name": "Health",
@@ -96,6 +98,27 @@ def init_swagger(app: Flask):
                     "last_updated": {"type": "string", "format": "date-time", "description": "Última atualização"}
                 }
             },
+            "BacklogItem": {
+                "type": "object",
+                "properties": {
+                    "type": {"type": "string", "description": "Tipo do item (e.g., issue, improvement, feedback)"},
+                    "priority": {"type": "string", "description": "Prioridade do item (e.g., High, Medium, Low)"},
+                    "description": {"type": "string", "description": "Descrição do item de backlog"},
+                    "source": {"type": "string", "description": "Fonte da geração (e.g., Fallback AI, Gemini AI)"}
+                }
+            },
+            "Backlog": {
+                "type": "object",
+                "properties": {
+                    "app_name": {"type": "string", "description": "Nome do aplicativo"},
+                    "total_reviews_processed": {"type": "integer", "description": "Total de reviews processadas para o backlog"},
+                    "generated_backlog_items": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/BacklogItem"}
+                    },
+                    "summary": {"type": "string", "description": "Resumo da geração do backlog"}
+                }
+            },
             "HealthCheck": {
                 "type": "object",
                 "properties": {
@@ -122,4 +145,5 @@ def init_swagger(app: Flask):
     }
     
     return Swagger(app, config=swagger_config, template=swagger_template)
+
 

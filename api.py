@@ -344,3 +344,88 @@ def health_check():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5003, debug=True)
 
+
+from services.backlog_generation_fallback import BacklogGenerationFallbackService
+
+
+backlog_fallback_service = BacklogGenerationFallbackService()
+
+
+
+@app.route("/api/apps/<app_id>/backlog", methods=["GET"])
+def get_app_backlog(app_id):
+    """
+    Gera itens de backlog para um aplicativo baseado em reviews.
+    ---
+    tags:
+      - Backlog
+    parameters:
+      - name: app_id
+        in: path
+        type: string
+        required: true
+        description: ID único do aplicativo
+      - name: store
+        in: query
+        type: string
+        enum: [google_play, app_store]
+        required: true
+        description: Loja do aplicativo (google_play ou app_store)
+      - name: limit
+        in: query
+        type: integer
+        default: 100
+        description: Número máximo de reviews para usar na geração do backlog
+    responses:
+      200:
+        description: Itens de backlog gerados
+        schema:
+          type: object
+          properties:
+            app_name:
+              type: string
+            total_reviews_processed:
+              type: integer
+            generated_backlog_items:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  priority:
+                    type: string
+                  description:
+                    type: string
+                  source:
+                    type: string
+            summary:
+              type: string
+      500:
+        description: Erro interno do servidor
+        schema:
+          $ref: '#/definitions/Error'
+    """
+    try:
+        store = request.args.get("store")
+        limit = request.args.get("limit", 100, type=int)
+        if not store:
+            return jsonify({"error": "Parâmetro 'store' é obrigatório para gerar backlog."}), 400
+
+        reviews_data = []
+        if store == "google_play":
+            reviews_data, _ = google_play_service.get_app_reviews(app_id, count=limit)
+        elif store == "app_store":
+            reviews_data = apple_store_service.get_app_reviews(app_id, count=limit)
+
+        # Aqui você pode adicionar a lógica para tentar a geração de backlog com IA real
+        # Se falhar ou não estiver disponível, usa o fallback
+        # Por enquanto, vamos direto para o fallback
+        backlog_items = backlog_fallback_service.generate_mock_backlog(app_id, reviews_data)
+        
+        return jsonify(backlog_items)
+    except Exception as e:
+        logger.error(f"Erro ao gerar backlog para o app {app_id}: {e}")
+        return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
+
+

@@ -5,10 +5,9 @@ Este é o back-end do sistema de análise automática de aplicativos da Google P
 ## Funcionalidades
 
 - 🔍 **Scraping de Dados**: Coleta automática de avaliações e informações dos apps
-- 🤖 **Análise de Sentimentos**: Classificação inteligente usando Google Gemini
+- 🤖 **Análise de Sentimentos**: Classificação inteligente usando Google Gemini (com fallback)
 - 📊 **Dashboards**: APIs para visualização de dados e métricas
-- 🚨 **Automação**: Criação automática de issues no GitHub baseada em tendências negativas
-- 🔄 **Comparação**: Análise comparativa com aplicativos concorrentes
+- 📝 **Geração de Backlog**: Geração de itens de backlog baseados em reviews (com fallback)
 
 ## APIs Disponíveis
 
@@ -17,16 +16,9 @@ Este é o back-end do sistema de análise automática de aplicativos da Google P
 - `GET /api/apps/{id}` - Detalhes de um aplicativo específico
 - `GET /api/apps/{id}/reviews` - Reviews de um aplicativo
 
-### Scraping
-- `POST /api/scraping/google-play/{id}` - Fazer scraping do Google Play
-- `POST /api/scraping/apple-store/{id}` - Fazer scraping da Apple Store
-
-### Análise de Sentimentos
-- `POST /api/sentiment/analyze` - Analisar sentimentos das reviews
-
-### Automação GitHub
-- `GET /api/github/config` - Configuração do GitHub
-- `POST /api/github/simulate-issue/{id}` - Simular criação de issue
+### Análise
+- `GET /api/apps/{id}/analysis` - Análise de sentimentos de um aplicativo
+- `GET /api/apps/{id}/backlog` - Geração de itens de backlog para um aplicativo
 
 ### Utilitários
 - `GET /health` - Status da API
@@ -35,7 +27,6 @@ Este é o back-end do sistema de análise automática de aplicativos da Google P
 
 - **Flask**: Framework web Python
 - **Google Gemini**: IA para análise de sentimentos
-- **PyGithub**: Automação de issues
 - **Google Play Scraper**: Coleta de dados do Google Play
 - **App Store Scraper**: Coleta de dados da Apple Store
 
@@ -48,10 +39,9 @@ Este projeto está configurado para deploy automático na Vercel.
 Para funcionalidades completas, configure as seguintes variáveis de ambiente:
 
 - `GEMINI_API_KEY`: Chave da API do Google Gemini
-- `GITHUB_TOKEN`: Token de acesso do GitHub
-- `GITHUB_REPO`: Repositório para criação de issues (formato: owner/repo)
 
 ## Desenvolvido por
 
 Cledson Alves - Sistema completo de análise automática de aplicativos.
+
 
