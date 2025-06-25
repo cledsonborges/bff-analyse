@@ -12,6 +12,7 @@ from swagger_config import init_swagger
 from services.google_play_scraping_real import GooglePlayScrapingService
 from services.apple_store_scraping_real import AppleAppStoreScrapingService
 from services.sentiment_analysis_real import SentimentAnalysisService
+from services.user_service import UserService
 
 # Configurar API Key do Gemini
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY", "AIzaSyA_dmMQb9pOglYE-O5325CdIqmoCloVSLI")
@@ -33,6 +34,14 @@ swagger = init_swagger(app)
 google_play_service = GooglePlayScrapingService()
 apple_store_service = AppleAppStoreScrapingService()
 sentiment_service = SentimentAnalysisService(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Inicializar serviço de usuários (DynamoDB)
+try:
+    user_service = UserService()
+    logger.info("Serviço de usuários (DynamoDB) inicializado com sucesso")
+except Exception as e:
+    logger.error(f"Erro ao inicializar serviço de usuários: {e}")
+    user_service = None
 
 # Importar e registrar blueprints
 try:
@@ -171,6 +180,27 @@ def login():
         
         # Registrar acesso no log
         log_user_access(email, "login")
+        
+        # Registrar usuário no DynamoDB
+        if user_service:
+            try:
+                # Dados adicionais do usuário (pode ser expandido conforme necessário)
+                additional_data = {
+                    'user_agent': request.headers.get('User-Agent', ''),
+                    'ip_address': request.remote_addr or 'unknown'
+                }
+                
+                dynamodb_result = user_service.register_user_login(email, additional_data)
+                
+                if dynamodb_result['success']:
+                    logger.info(f"Usuário {email} registrado no DynamoDB com sucesso")
+                else:
+                    logger.warning(f"Falha ao registrar usuário {email} no DynamoDB: {dynamodb_result.get('error')}")
+                    
+            except Exception as e:
+                logger.error(f"Erro ao registrar usuário {email} no DynamoDB: {e}")
+        else:
+            logger.warning("Serviço de usuários não disponível - usuário não será registrado no DynamoDB")
         
         # Gerar token JWT
         token = generate_jwt_token(email)
@@ -639,5 +669,174 @@ def get_app_backlog(app_id):
     except Exception as e:
         logger.error(f"Erro ao gerar backlog para o app {app_id}: {e}")
         return jsonify({"error": f"Erro interno do servidor: {e}"}), 500
+
+
+# Rotas adicionais para gerenciamento de usuários
+@app.route("/api/users/stats/<email>", methods=["GET"])
+def get_user_stats(email):
+    """
+    Obtém estatísticas de um usuário específico
+    ---
+    tags:
+      - Users
+    parameters:
+      - name: email
+        in: path
+        type: string
+        required: true
+        description: Email do usuário
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Bearer token JWT
+    responses:
+      200:
+        description: Estatísticas do usuário
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            stats:
+              type: object
+              properties:
+                email:
+                  type: string
+                login_count:
+                  type: integer
+                created_at:
+                  type: string
+                last_login:
+                  type: string
+                updated_at:
+                  type: string
+      401:
+        description: Token inválido ou não fornecido
+      404:
+        description: Usuário não encontrado
+      500:
+        description: Erro interno do servidor
+    """
+    try:
+        # Verificar token JWT
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({
+                "success": False,
+                "error": "Token não fornecido"
+            }), 401
+        
+        token = auth_header.split(' ')[1]
+        payload = verify_jwt_token(token)
+        
+        if not payload:
+            return jsonify({
+                "success": False,
+                "error": "Token inválido ou expirado"
+            }), 401
+        
+        if not user_service:
+            return jsonify({
+                "success": False,
+                "error": "Serviço de usuários não disponível"
+            }), 500
+        
+        result = user_service.get_user_stats(email)
+        
+        if not result['success']:
+            return jsonify(result), 404 if 'não encontrado' in result.get('error', '') else 500
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        logger.error(f"Erro ao obter estatísticas do usuário {email}: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Erro interno do servidor"
+        }), 500
+
+
+@app.route("/api/users/recent", methods=["GET"])
+def get_recent_users():
+    """
+    Lista usuários mais recentes
+    ---
+    tags:
+      - Users
+    parameters:
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+        description: Número máximo de usuários a retornar
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Bearer token JWT
+    responses:
+      200:
+        description: Lista de usuários recentes
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            users:
+              type: array
+              items:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  created_at:
+                    type: string
+                  last_login:
+                    type: string
+                  login_count:
+                    type: integer
+            count:
+              type: integer
+      401:
+        description: Token inválido ou não fornecido
+      500:
+        description: Erro interno do servidor
+    """
+    try:
+        # Verificar token JWT
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({
+                "success": False,
+                "error": "Token não fornecido"
+            }), 401
+        
+        token = auth_header.split(' ')[1]
+        payload = verify_jwt_token(token)
+        
+        if not payload:
+            return jsonify({
+                "success": False,
+                "error": "Token inválido ou expirado"
+            }), 401
+        
+        if not user_service:
+            return jsonify({
+                "success": False,
+                "error": "Serviço de usuários não disponível"
+            }), 500
+        
+        limit = request.args.get('limit', 10, type=int)
+        result = user_service.list_recent_users(limit)
+        
+        return jsonify(result), 200 if result['success'] else 500
+        
+    except Exception as e:
+        logger.error(f"Erro ao listar usuários recentes: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Erro interno do servidor"
+        }), 500
 
 
