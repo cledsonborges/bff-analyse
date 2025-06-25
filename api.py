@@ -44,6 +44,13 @@ try:
 except ImportError as e:
     logger.warning(f"Não foi possível importar blueprint de sentimentos: {e}")
 
+try:
+    from routes.backlog import backlog_bp
+    app.register_blueprint(backlog_bp, url_prefix="/api")
+    logger.info("Blueprint de backlog registrado")
+except ImportError as e:
+    logger.warning(f"Não foi possível importar blueprint de backlog: {e}")
+
 # Rotas da API
 @app.route("/api/apps", methods=["GET"])
 def get_apps():
@@ -335,5 +342,5 @@ def health_check():
         }), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5002, debug=True)
+    app.run(host="0.0.0.0", port=5003, debug=True)
 
