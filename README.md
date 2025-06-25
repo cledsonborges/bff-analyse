@@ -13,7 +13,7 @@ Este é o back-end do sistema de análise automática de aplicativos da Google P
 ## APIs Disponíveis
 
 ### Apps
-- `GET /api/apps` - Lista todos os aplicativos
+- `GET /api/apps` - Lista todos os aplicativos - ajustado
 - `GET /api/apps/{id}` - Detalhes de um aplicativo específico
 - `GET /api/apps/{id}/reviews` - Reviews de um aplicativo
 
